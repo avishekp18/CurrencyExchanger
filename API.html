@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dog Image Fetch - Single (Async) & Multiple (Promise)</title>
+  <style>
+    :root {
+      --bg-color: #f4f4f4;
+      --text-color: #333;
+      --card-bg: #fff;
+      --button-bg: #4CAF50;
+      --button-hover: #45a049;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #eee;
+      --card-bg: #1e1e1e;
+      --button-bg: #7cb342;
+      --button-hover: #689f38;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 700px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    button {
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--button-bg);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .images-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .dog-img {
+      width: 300px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .dog-img:hover {
+      transform: scale(1.05);
+    }
+
+    p {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <div class="container">
+    <h1>🐶 Random Dog Viewer</h1>
+    <p id="para">Click a button to fetch dog(s)!</p>
+    <div>
+      <button id="singleDogBtn">Get One Dog (Async/Await)</button>
+      <button id="multipleDogBtn">Get Three Dogs (Promise)</button>
+      <button id="toggleTheme">Toggle Light/Dark</button>
+    </div>
+    <div class="images-container" id="dogImages"></div>
+  </div>
+
+  <script>
+    const para = document.querySelector("#para");
+    const dogImagesContainer = document.querySelector("#dogImages");
+    const toggleTheme = document.querySelector("#toggleTheme");
+    const body = document.body;
+
+    const url = "https://dog.ceo/api/breeds/image/random";
+
+    // ✅ 1. SINGLE image using async/await
+    async function fetchSingleDog() {
+      para.innerText = "Fetching one dog (async/await)...";
+      dogImagesContainer.innerHTML = "";
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        para.innerText = "Here's your dog (Async/Await)!";
+
+        const img = document.createElement("img");
+        img.src = data.message;
+        img.classList.add("dog-img");
+        dogImagesContainer.appendChild(img);
+      } catch (error) {
+        para.innerText = "Error fetching single dog.";
+        console.error("Async/Await error:", error);
+      }
+    }
+
+    // ✅ 2. MULTIPLE images using Promises
+    function fetchMultipleDogs(count = 3) {
+      para.innerText = "Fetching multiple dogs (Promise)...";
+      dogImagesContainer.innerHTML = "";
+
+      const requests = Array.from({ length: count }, () =>
+        fetch(url).then(res => res.json())
+      );
+
+      Promise.all(requests)
+        .then(results => {
+          para.innerText = "Here are your dogs (Promise)!";
+          results.forEach(data => {
+            const img = document.createElement("img");
+            img.src = data.message;
+            img.classList.add("dog-img");
+            dogImagesContainer.appendChild(img);
+          });
+        })
+        .catch(error => {
+          para.innerText = "Error fetching multiple dogs.";
+          console.error("Promise error:", error);
+        });
+    }
+
+    // 🌗 Toggle dark/light theme
+    toggleTheme.addEventListener("click", () => {
+      body.dataset.theme = body.dataset.theme === "light" ? "dark" : "light";
+    });
+
+    // 🔘 Button event listeners
+    document.getElementById("singleDogBtn").addEventListener("click", fetchSingleDog);
+    document.getElementById("multipleDogBtn").addEventListener("click", () => fetchMultipleDogs(3));
+  </script>
+</body>
+</html>
